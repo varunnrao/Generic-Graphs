@@ -1,1 +1,1 @@
-# Generic-Graphs
+# Generics-Graphs
