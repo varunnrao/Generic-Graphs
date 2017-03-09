@@ -1,5 +1,5 @@
 # Generics-Graphs
-This is a repository for the 14CS337 - Generic Programming Course 2017
+This is a repository for the 14CS337/UE14CS337 - Generic Programming Course 2017 - Course Project
 
 Team Members:
 
