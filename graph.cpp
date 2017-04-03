@@ -11,11 +11,34 @@ class Graph
 {
 	public:
 	int size = 0;
-	Graph(set<T> vertices, set<pair<T,T>> edges)	//Very heavy constructor; need to optimize the algo which builds the adjList
-	{						//vertices argument isn't even used here
+	Graph()
+	{
+		vertexNodes.insert(Node(-1,T()));
+		adjList[Node(-1,T())];			
+	
+	}
+	Graph(set<T> vertices, set<pair<T,T>> edges)	
+	{						
 							
-
+		for(auto elem : vertices)
+		{
+			vertexNodes.insert(Node(++size, elem));
+		}
+		
 		for(auto e : edges)
+		{
+			auto f = vertexNodes.find(Node(-1,e.first));
+			auto s = vertexNodes.find(Node(-1,e.second));
+			adjList[*f].push_back(*s);
+			adjList[*s].push_back(*f);				
+		}
+
+		vertexNodes.insert(Node(-1,T()));
+		adjList[Node(-1,T())];			
+
+
+
+/*		for(auto e : edges)
 		{
 			auto f = vertexNodes.find(Node(-1,e.first));
 			auto s = vertexNodes.find(Node(-1,e.second));
@@ -52,7 +75,7 @@ class Graph
 			sort(pair.second.begin(),pair.second.end(),[](auto one, auto two){return one.index < two.index;});
 		}
 		
-		
+*/		
 /********************************************************TEST*************************************************		
 		auto it = adjList.begin();
 		while(it != adjList.end())
@@ -67,7 +90,7 @@ class Graph
 	
 	
 	template<typename PT>		// not sure if this must be a template class or not
-	class Iterator
+	class Iterator: public std::iterator<std::forward_iterator_tag, typename Graph::Node>
 	{
 
 		public:
@@ -80,6 +103,13 @@ class Graph
 		T operator*()
 		{
 			return this->curr->value;
+		}
+
+		bool operator==(auto rhs)
+		{
+			return (
+				curr->index == rhs.curr->index  	//need to modify this;
+			);						// must check stack, visited set inequality as well
 		}
 		
 		bool operator!=(auto rhs)
@@ -195,15 +225,23 @@ class Rect
 	 {
 	 	return lhs.length < rhs.length;
 	 }
+
+	 friend bool operator!=(Rect lhs, Rect rhs) 
+	 {
+	 	return !(lhs == rhs);
+	 }
 	 
+	 friend bool operator==(Rect lhs, Rect rhs) 
+	 {
+	 	return (lhs.length == rhs.length) && (lhs.breadth == rhs.breadth);
+	 }
 	 
 	friend ostream& operator<<(ostream& os, const Rect& r)
 	{
 	    os << r.length<<" : "<< r.breadth << "\n";
-    // write obj to stream
 	    return os;
 	}
-	private:
+	
 	 int length;
 	 int breadth;
 };
@@ -214,8 +252,7 @@ int main()
 
 
 
-//	Couldn't make it work for user defined types
-
+/******************GRAPH OF RECT***********
 	Rect a(3,5);
 	Rect b(4,5);
 	Rect c(1,2);
@@ -232,9 +269,12 @@ int main()
 	};
 
 	Graph<Rect> myg(vertices, edges);
+*****************************************/
 
 
-/*	char a = 'a';
+
+/******************GRAPH OF CHAR***********
+	char a = 'a';
 	char b = 'b';	
 	char c = 'c';
 	char d = 'd';
@@ -251,14 +291,78 @@ int main()
 	
 	};
 	Graph<char> myg(vertices, edges);
-*/	
+*****************************************/
+
+
+/***************DISPLAY******************	
 	auto it = myg.begin();
 	while(it != myg.end())
 	{
-		cout << *it << "\t"; 	//should display in DFS
+		cout << *it << "\n"; 	//should display in DFS
 		++it;
 	}
-	
+****************************************/
+
+
+
+
+
+
+/**************STL TRIALS****************/
+
+
+
+/***********COUNT********************************************
+
+	cout << "\n\n\n" << count(myg.begin(), myg.end(), a);		//always gives 0 or 1
+
+*************************************************************/
+
+
+
+
+/***********************COPY***********************
+	Graph<Rect> copied;
+	copy(myg.begin(), myg.end(),copied.begin());	//does not work due to requirement of
+	auto it2 = copied.begin();			//operator* or operator== on Node/Rect
+	while(it2 != copied.end())
+	{
+		cout << *it2 << "\n"; 	
+		++it2;
+	}
+**************************************************/
+
+
+
+
+/***********************SWAP***********************
+
+	auto one = myg.begin(); auto two = myg.begin();
+	iter_swap(++one,two);			//does not work, swap does not either
+
+**************************************************/
+
+
+/***********************FOR_EACH***********************
+
+	for_each(myg.begin(),myg.end(),[](auto e){ cout << e;});
+
+**************************************************/
+
+
+/***********************FIND/FIND_IF/FIND_IF_NOT***********************
+
+	cout << *(find_if_not(myg.begin(), myg.end(), [](auto e){ return e.length <= 1; }));
+
+**************************************************/
+
+
+/***********************ANY_OF/ALL_OF***********************
+
+	cout << any_of(myg.begin(), myg.end(), [](auto e){ return e.length >= 1; });	
+
+**************************************************/
+
 }
 
 
