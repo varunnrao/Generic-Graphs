@@ -7,6 +7,7 @@
 #include<string>
 #include<stack>
 #include<deque>
+#include<typeinfo>
 
 using namespace std;
 
@@ -23,10 +24,15 @@ class Student
 		: name(name)
 		, usn(usn)
 	{}
+	Student()
+		:name("")
+		,usn("")
+	{}
+	/*
 	bool operator<(const Student& rhs) const
 	{
 		return usn < rhs.usn;
-	}
+	}*/
 	friend ostream& operator<<(ostream& os, const Student& s);
 };
 
@@ -54,19 +60,23 @@ class Node
 	static int count;
 	val_t data;
 	int index;	
-	
+	Node()
+	{}
 	Node(val_t data)
 		: data(data)
 		, index(count++)
 	{}
 	bool operator< (const Node<val_t>& rhs) const
 	{
-		return data < rhs.data;
-	}
+		return index < rhs.index;
+	}	
+	
+	
 };
 
+
 template<typename val_t>
-int Node<val_t>::count = 0;//Need to do this hack for incr of non-const static variables of a class
+int Node<val_t>::count = -1;//Need to do this hack for incr of non-const static variables of a class
 
 
 //Graph ADT
@@ -91,7 +101,14 @@ class Graph
 	Graph(int num_vertices, int num_edges)
 		: num_vertices(num_vertices)
 		, num_edges(num_edges)
-	{}
+	{
+		//this is a sentinel node to mark the logical one 
+		//past end in the graph traversal
+		val_t v;		
+		Node<val_t> end(v);
+		set<Node<val_t>> empty;
+		graph.insert(make_pair(end,empty));
+	}
 	
 	//method to add edges to the graph
 	void add_edge(Node<val_t> src, Node<val_t> dst);
@@ -101,6 +118,91 @@ class Graph
 	
 	//DFS graph traversal
 	void dfs(Node<val_t> start_node);
+	
+	
+	class Iterator
+	{
+		private:
+		Graph* g;
+		typedef typename map< Node<val_t>, set< Node<val_t> >>::const_iterator map_it;
+		map_it current_ptr;
+		vector<bool> visited {vector<bool>(g->num_vertices,false)};
+		deque<Node<val_t>> s;//using a deque as a stack
+		
+		public:
+		
+		Iterator(map_it it, Graph* g):g(g)
+		{
+			s.push_front((*it).first);
+			if((*it).first.index==0)
+				visited[(*it).first.index]=true;
+			current_ptr = it;
+		}
+		
+		pair<Node<val_t>,set<Node<val_t>>> operator*() const
+		{
+			
+			return *current_ptr;
+		}
+		
+		bool operator!=(const Iterator& rhs) const
+		{
+			return !(*this == rhs);
+		}
+		
+		bool operator==(const Iterator& rhs) const
+		{
+			return current_ptr == rhs.current_ptr;
+		}
+		Iterator& operator++()
+		{
+			
+			
+			while(!s.empty() )
+			{
+				Node<val_t> t=s.back();
+				s.pop_back();	
+						
+				for(auto i = (g->graph[t]).begin();i!=(g->graph[t]).end();i++)
+				{
+					if(!visited[(*i).index])
+						s.push_front(*i);
+				}
+				
+				if(!visited[t.index])
+				{
+					current_ptr = g->graph.find(t);					
+					visited[t.index]=true;
+					break;
+				}
+				
+			}
+			if(s.empty())
+			{
+				val_t s;
+				Node<val_t> test;
+				test.index=-1;
+				current_ptr = g->graph.find(test);
+			}
+			
+			return *this;
+		}	
+			
+	};
+	Iterator begin() 
+	{
+		val_t s;
+		Node<val_t> test;
+		test.index=0;			
+		return Iterator(graph.find(test),this);
+	}
+	Iterator end() 
+	{
+		val_t s;
+		Node<val_t> test;
+		test.index=-1;
+		return Iterator(graph.find(test),this);
+	}
 };
 
 template<typename val_t>
@@ -109,6 +211,7 @@ void Graph<val_t> :: dfs(Node<val_t> t)
 	vector<bool> visited(num_vertices,false);
 	deque<Node<val_t>> s;//using a deque as a stack	
 	s.push_front(t);
+	
 	while(!s.empty())
 	{
 		t = s.back();
@@ -146,7 +249,7 @@ void Graph<val_t> :: add_edge(Node<val_t> src, Node<val_t> dst)
 		//must be inserted into the adjacency list
 		set< Node<val_t> > v;
 		v.insert(dst);
-		//graph.insert(make_pair(src, (vector< Node<val_t> >()).push_back(dst)));
+		
 		graph.insert(make_pair(src, v));		 
 	}
 	else
@@ -166,7 +269,7 @@ void Graph<val_t> :: add_edge(Node<val_t> src, Node<val_t> dst)
 		v.insert(src);
 		graph.insert(make_pair(dst, v));
 		
-		//graph.insert(make_pair(dst, (vector< Node<val_t> >()).push_back(src)));
+		
 	}	
 	else
 	{
@@ -178,12 +281,28 @@ void Graph<val_t> :: add_edge(Node<val_t> src, Node<val_t> dst)
 template<typename val_t>
 void Graph<val_t> :: disp()
 {
+	
 	for(auto p: graph)
 	{
-		cout<<p.first.data<<" ";
-		for(auto e: p.second)
-			cout<<"->"<<e.data;
-		cout<<"\n";
+		if(p.first.index != -1)
+		{
+			cout<<p.first.data<<" ";
+			for(auto e: p.second)
+				cout<<"->"<<e.data;
+			cout<<"\n";
+		}
+	}
+}
+
+template<typename ptr_t>
+void display(ptr_t first, ptr_t last)
+{
+	while(first!=last)
+	{
+		
+		cout<<(*first).first.data<<'\n';		
+		++first;
+		
 	}
 }
 
@@ -196,6 +315,11 @@ int main()
 	Student s3("s3","CS03");
 	Student s4("s4","CS04");
 	Student s5("s5","CS05");
+	/*
+	
+	//TEST CASE #1
+	
+	Graph<Student> g(5,7);//must be called before node object is created for data to be initialised with -1
 	
 	Node<Student> n1(s1);
 	Node<Student> n2(s2);
@@ -203,7 +327,7 @@ int main()
 	Node<Student> n4(s4);
 	Node<Student> n5(s5);
 	
-	Graph<Student> g(5,7);
+	
 	g.add_edge(n1,n2);
 	g.add_edge(n1,n3);
 	g.add_edge(n1,n4);
@@ -211,11 +335,34 @@ int main()
 	g.add_edge(n4,n3);
 	g.add_edge(n4,n5);
 	g.add_edge(n5,n3);	
-	g.disp();	
-	g.dfs(n3);
+	//g.disp();	
+	//g.dfs(n1);
+	
+	display(g.begin(),g.end());
+	*/
+	
+	
+	//TEST CASE #2
+	
+	Graph<Student> g(5,5);
+	
+	Node<Student> n1(s1);
+	Node<Student> n2(s2);
+	Node<Student> n3(s3);
+	Node<Student> n4(s4);
+	Node<Student> n5(s5);
+	
+	g.add_edge(n1,n2);
+	g.add_edge(n1,n5);
+	g.add_edge(n2,n5);
+	g.add_edge(n5,n3);
+	g.add_edge(n5,n4);
+	
+	display(g.begin(),g.end());
+	
 }
 
-/* Test Case
+/* Test Case #1
 
 1 ------- 2
 |\		  | 
@@ -232,4 +379,16 @@ int main()
   \      /
    \    / 
      5
+*/
+
+
+/* Test Case #2
+
+1------2
+ \    /
+  \  /
+   5
+  / \ 
+ 3   4
+ 
 */
