@@ -28,11 +28,21 @@ class Student
 		:name("")
 		,usn("")
 	{}
+	
+	string& get_name()
+	{
+		return this->name;
+	}
 	/*
 	bool operator<(const Student& rhs) const
 	{
 		return usn < rhs.usn;
 	}*/
+	
+	bool operator==(const Student& rhs)
+	{	
+		return this->name == rhs.name;
+	}
 	friend ostream& operator<<(ostream& os, const Student& s);
 };
 
@@ -120,7 +130,7 @@ class Graph
 	void dfs(Node<val_t> start_node);
 	
 	
-	class Iterator
+	class Iterator : public iterator<forward_iterator_tag, typename map< Node<val_t>, set< Node<val_t> >>::const_iterator>
 	{
 		private:
 		Graph* g;
@@ -139,10 +149,10 @@ class Graph
 			current_ptr = it;
 		}
 		
-		pair<Node<val_t>,set<Node<val_t>>> operator*() const
+		val_t operator*() 
 		{
 			
-			return *current_ptr;
+			return (*current_ptr).first.data;
 		}
 		
 		bool operator!=(const Iterator& rhs) const
@@ -300,7 +310,7 @@ void display(ptr_t first, ptr_t last)
 	while(first!=last)
 	{
 		
-		cout<<(*first).first.data<<'\n';		
+		cout<<(*first)<<'\n';		
 		++first;
 		
 	}
@@ -360,6 +370,40 @@ int main()
 	
 	display(g.begin(),g.end());
 	
+	
+	{auto it=find(g.begin(),g.end(),s2);
+	if(it == g.end())
+	{
+		cout<<"not found"<<std::endl;
+	}
+	else
+	{
+		std::cout<<"found"<<std::endl;
+	}
+	}
+	auto it=find_if(g.begin(),g.end(),[](auto e){return e.get_name() == "s2";});
+	if(it == g.end())
+	{
+		cout<<"not found"<<std::endl;
+	}
+	else
+	{
+		std::cout<<"found"<<std::endl;
+	}
+	cout<<"Copy Method\n====================\n";
+	vector<Student> v(5);
+	copy(g.begin(),g.end(),v.begin());
+	for(auto e: v)
+		cout<<e<<"\n";
+		
+	v.clear();
+	/*
+	cout<<"Copy If method\n==================\n";  NOT WORKING!!
+	copy_if(g.begin(),g.end(),v.begin(),[](auto e){return e.get_name()>"s2";});
+	for(auto e: v)
+		cout<<e<<"\n";
+		
+	//cout<<("s2">"s1")<<"\n";*/
 }
 
 /* Test Case #1
