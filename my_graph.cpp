@@ -8,6 +8,7 @@
 #include<stack>
 #include<deque>
 #include<typeinfo>
+#include<numeric>
 
 using namespace std;
 
@@ -42,6 +43,23 @@ class Student
 	bool operator==(const Student& rhs)
 	{	
 		return this->name == rhs.name;
+	}
+	
+	Student operator+(const Student& rhs) const
+	{
+		Student t;	
+		if((this->name).empty())
+		{
+			t.name = rhs.name;
+			t.usn = rhs.usn;
+		}
+		else
+		{
+			t.name =  this->name + ";" + rhs.name;		
+			t.usn =  this->usn +";" + rhs.usn;
+		}				
+		return t;
+		
 	}
 	friend ostream& operator<<(ostream& os, const Student& s);
 };
@@ -395,6 +413,8 @@ int main()
 	copy(g.begin(),g.end(),v.begin());
 	for(auto e: v)
 		cout<<e<<"\n";
+	Student t;
+	cout<<accumulate(g.begin(),g.end(),t)<<"\n";
 		
 	v.clear();
 	/*
@@ -404,6 +424,8 @@ int main()
 		cout<<e<<"\n";
 		
 	//cout<<("s2">"s1")<<"\n";*/
+	
+	
 }
 
 /* Test Case #1
