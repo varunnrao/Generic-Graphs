@@ -21,11 +21,6 @@ class Graph
 					return lhs.value_ < rhs.value_;
 				}
 				
-				/*friend bool operator==(const Node& lhs, const Node& rhs)
-				{
-					return !(lhs < rhs) && !(rhs <lhs);
-				}*/
-				
 				friend std::ostream& operator<<(std::ostream& o ,const Node& x)
 				{
 					 //return o<< x.index_ <<"->"<<x.value_;
@@ -113,16 +108,68 @@ class Graph
 			
 		}
 		
-		constexpr Graph(const Graph& g) = delete;
-		constexpr Graph(Graph&& g) = delete;
-		constexpr Graph& operator=(const Graph& g) =delete;
-		constexpr Graph& operator=(Graph&& g) =delete;
-		
-		class dfs_iterator: public std::iterator<std::forward_iterator_tag, T>
+		constexpr Graph(const Graph& rhs)
 		{
+			vertex_nodes_=std::set<Node>(rhs.vertex_nodes_.begin(),rhs.vertex_nodes_.end());
+			adj_list_=std::map<Node,std::set<Node>>(rhs.adj_list_.begin(),rhs.adj_list_.end());
+			size_=rhs.size_;
+		}
+		constexpr Graph(Graph&& rhs)
+		{
+			vertex_nodes_=std::set<Node>(rhs.vertex_nodes_.begin(),rhs.vertex_nodes_.end());
+			adj_list_=std::map<Node,std::set<Node>>(rhs.adj_list_.begin(),rhs.adj_list_.end());
+			size_=rhs.size_;
+			rhs.size_=0;
+			rhs.adj_list_=std::map<Node,std::set<Node>>();
+			rhs.adj_list_[Node()];
+			rhs.vertex_nodes_=std::set<Node>();
+			rhs.vertex_nodes_.insert(Node());
+					
+		}
+		constexpr Graph& operator=(const Graph& rhs)
+		{
+			if(this != &rhs)
+			{
+				vertex_nodes_=std::set<Node>(rhs.vertex_nodes_.begin(),rhs.vertex_nodes_.end());
+				adj_list_=std::map<Node,std::set<Node>>(rhs.adj_list_.begin(),rhs.adj_list_.end());
+				size_=rhs.size_;
+			}
+			
+			return *this;
+		}
+		
+		constexpr Graph& operator=(Graph&& rhs)
+		{
+			if(this != &rhs)
+			{
+				vertex_nodes_=std::set<Node>(rhs.vertex_nodes_.begin(),rhs.vertex_nodes_.end());
+				adj_list_=std::map<Node,std::set<Node>>(rhs.adj_list_.begin(),rhs.adj_list_.end());
+				size_=rhs.size_;
+				rhs.size_=0;
+				rhs.adj_list_=std::map<Node,std::set<Node>>();
+				rhs.adj_list_[Node()];
+				rhs.vertex_nodes_=std::set<Node>();
+				rhs.vertex_nodes_.insert(Node());	
+			}
+		}
+		
+		class dfs_iterator  //: public std::iterator<std::forward_iterator_tag, T>
+		{
+		
+			
 			typedef std::_Rb_tree_const_iterator<Graph<T>::Node> itr_t;
 			
+			
 			public:
+			
+				typedef std::ptrdiff_t difference_type;
+				typedef T value_type;
+				typedef T* pointer;
+				typedef T& reference;
+				typedef size_t size ;
+				typedef std::forward_iterator_tag iterator_category;
+				
+				
 				constexpr dfs_iterator(itr_t node_iterator, Graph<T>* graph)
 				:graph_(graph)
 				{
@@ -423,6 +470,37 @@ int main()
 	myg.display();
 	
 	
+	std::cout<<"copy ctor"<<std::endl;
+	Graph<char> new_g=myg;
+	std::cout << "no of vertices :" << new_g.vsize() << "\n";
+	new_g.display();
+	
+	
+	std::cout<<"move ctor"<<std::endl;
+	Graph<char> move_g(std::move(new_g));
+	std::cout << "no of vertices :" << move_g.vsize() << "\n";
+	move_g.display();
+	
+	std::cout << "no of vertices :" << new_g.vsize() << "\n";
+	new_g.display();
+	
+	std::cout<<"copy assignment"<<std::endl;
+	new_g=move_g;
+	std::cout << "no of vertices :" << new_g.vsize() << "\n";
+	new_g.display();
+
+	
+	Graph<char> move_new_g;
+	std::cout<<"move assignment"<<std::endl;
+	move_new_g=std::move(new_g);
+		std::cout << "no of vertices :" << new_g.vsize() << "\n";
+	new_g.display();
+	
+		std::cout << "no of vertices :" << move_new_g.vsize() << "\n";
+	move_new_g.display();
+	
+	
+	
 	//myg.remove_edge(a,b);
 	//myg.remove_edge(std::pair<char,char>(b,c));
 	//myg.add_edge(d,b);
@@ -465,6 +543,9 @@ int main()
 	#endif
 	#if 0
 	#endif 
+	
+	std::vector<char> v{move_new_g.begin(),move_new_g.end()};
+	std::copy(v.begin(),v.end(),std::ostream_iterator<char>(std::cout,","));
 }
 
 /*
