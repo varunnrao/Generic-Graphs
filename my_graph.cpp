@@ -148,9 +148,11 @@ class Graph
 	void dfs(Node<val_t> start_node);
 	
 	
-	class Iterator : public iterator<forward_iterator_tag, typename map< Node<val_t>, set< Node<val_t> >>::const_iterator>
+	//class Iterator : public iterator<forward_iterator_tag, typename map< Node<val_t>, set< Node<val_t> >>::const_iterator>
+	class Iterator
 	{
 		private:
+		
 		Graph* g;
 		typedef typename map< Node<val_t>, set< Node<val_t> >>::const_iterator map_it;
 		map_it current_ptr;
@@ -158,6 +160,13 @@ class Graph
 		deque<Node<val_t>> s;//using a deque as a stack
 		
 		public:
+		
+		typedef std::ptrdiff_t difference_type;
+		typedef Node<val_t>  value_type;
+		typedef Node<val_t>* pointer;
+		typedef Node<val_t>& reference;
+		typedef size_t size_type;
+		typedef std::forward_iterator_tag iterator_category;
 		
 		Iterator(map_it it, Graph* g):g(g)
 		{
