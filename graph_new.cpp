@@ -32,23 +32,24 @@ class Graph
 			
 		std::set<Node> vertex_nodes_;
 		std::map<Node,std::set<Node>> adj_list_;
-		int size_;
+		int vsize_;
+		int esize_;
 
 	public:
 		constexpr Graph()
-		:size_(0)
+		:vsize_(0),esize_(0)
 		{
 			vertex_nodes_.insert(Node());
 			adj_list_[Node()];			
 		}
 		
 		constexpr Graph(const std::set<T> vertices,const std::set<std::pair<T,T>> edges)
-		:size_(0)
+		:vsize_(0),esize_(0)
 		{
 		
 			for(const auto& v : vertices)
 			{
-				vertex_nodes_.insert(Node(++size_, v));
+				vertex_nodes_.insert(Node(++vsize_, v));
 				
 			}
 		
@@ -57,7 +58,8 @@ class Graph
 				auto f = vertex_nodes_.find(Node(-1,e.first));
 				auto s = vertex_nodes_.find(Node(-1,e.second));
 				adj_list_[*f].insert(*s);
-				adj_list_[*s].insert(*f);			
+				adj_list_[*s].insert(*f);
+				++esize_;			
 			}
 
 			vertex_nodes_.insert(Node());
@@ -69,7 +71,7 @@ class Graph
 		//meaningless ->cannot fill the graph with n empty vertices since all will be eliminated because their value fields
 		are null and are same .
 		constexpr Graph(const int vertices)
-		:size_(vertices)
+		:vsize_(vertices)
 		{	
 			vertex_nodes_.insert(Node());
 			adj_list_[Node()];
@@ -78,12 +80,12 @@ class Graph
 		
 		template<typename U>
 		constexpr Graph(const std::initializer_list<U> vertex_list)
-		:size_(0)
+		:vsize_(0),esize_(0)
 		{
 			std::set<U> s(vertex_list);
 			std::for_each(s.begin(),s.end(),[&](const auto& e)
 							{
-								auto node = Node(++size_,e);
+								auto node = Node(++vsize_,e);
 								vertex_nodes_.insert(node);
 								adj_list_[node];
 							});
@@ -94,12 +96,12 @@ class Graph
 		
 		template<typename ptr_t>
 		constexpr Graph(ptr_t begin,ptr_t end)
-		:size_(0)
+		:vsize_(0),esize_(0)
 		{
 			std::set<typename std::iterator_traits<ptr_t>::value_type> s(begin,end);
 			std::for_each(s.begin(),s.end(),[&](const auto& e)
 							{
-								auto node = Node(++size_,e);
+								auto node = Node(++vsize_,e);
 								vertex_nodes_.insert(node);
 								adj_list_[node];
 							});
@@ -112,14 +114,17 @@ class Graph
 		{
 			vertex_nodes_=std::set<Node>(rhs.vertex_nodes_.begin(),rhs.vertex_nodes_.end());
 			adj_list_=std::map<Node,std::set<Node>>(rhs.adj_list_.begin(),rhs.adj_list_.end());
-			size_=rhs.size_;
+			vsize_=rhs.vsize_;
+			esize_=rhs.esize_;
 		}
 		constexpr Graph(Graph&& rhs)
 		{
 			vertex_nodes_=std::set<Node>(rhs.vertex_nodes_.begin(),rhs.vertex_nodes_.end());
 			adj_list_=std::map<Node,std::set<Node>>(rhs.adj_list_.begin(),rhs.adj_list_.end());
-			size_=rhs.size_;
-			rhs.size_=0;
+			vsize_=rhs.vsize_;
+			esize_=rhs.esize_;
+			rhs.vsize_=0;
+			rhs.esize_=0;
 			rhs.adj_list_=std::map<Node,std::set<Node>>();
 			rhs.adj_list_[Node()];
 			rhs.vertex_nodes_=std::set<Node>();
@@ -132,7 +137,8 @@ class Graph
 			{
 				vertex_nodes_=std::set<Node>(rhs.vertex_nodes_.begin(),rhs.vertex_nodes_.end());
 				adj_list_=std::map<Node,std::set<Node>>(rhs.adj_list_.begin(),rhs.adj_list_.end());
-				size_=rhs.size_;
+				vsize_=rhs.vsize_;
+				esize_=rhs.esize_;
 			}
 			
 			return *this;
@@ -144,8 +150,10 @@ class Graph
 			{
 				vertex_nodes_=std::set<Node>(rhs.vertex_nodes_.begin(),rhs.vertex_nodes_.end());
 				adj_list_=std::map<Node,std::set<Node>>(rhs.adj_list_.begin(),rhs.adj_list_.end());
-				size_=rhs.size_;
-				rhs.size_=0;
+				vsize_=rhs.vsize_;
+				esize_=rhs.esize_;
+				rhs.vsize_=0;
+				rhs.esize_=0;
 				rhs.adj_list_=std::map<Node,std::set<Node>>();
 				rhs.adj_list_[Node()];
 				rhs.vertex_nodes_=std::set<Node>();
@@ -298,6 +306,7 @@ class Graph
 			{
 				adj_list_[*f].insert(std::move(*s));
 				adj_list_[*s].insert(std::move(*f));
+				++esize_;
 			}	
 			return *this;		
 		}
@@ -314,6 +323,7 @@ class Graph
 			{
 				adj_list_[*f].erase(std::move(*s));
 				adj_list_[*s].erase(std::move(*f));
+				--esize_;
 			}
 			return *this;
 		}
@@ -323,8 +333,8 @@ class Graph
 			auto it = vertex_nodes_.find(Node(-1,v));
 			if(it == vertex_nodes_.end())
 			{
-				vertex_nodes_.insert(Node(++size_, v));
-				adj_list_[Node(size_, v)];
+				vertex_nodes_.insert(Node(++vsize_, v));
+				adj_list_[Node(vsize_, v)];
 			}
 			return *this;
 			
@@ -350,8 +360,10 @@ class Graph
 				{
 					//remove from every adj list except the node's itself and the one with index=-1
 					if(every_adj_pair.first.index_!= -1 && (every_adj_pair.first.value_ != to_remove->value_ ))
-						adj_list_[every_adj_pair.first].erase(std::move(*to_remove));
-					
+					{
+						if(adj_list_[every_adj_pair.first].erase(std::move(*to_remove)))
+							--esize_;
+					}
 					//decrement the index value for those nodes whose index is greater than that of the to be removed node
 					if(every_adj_pair.first.index_ != -1 && (every_adj_pair.first.index_ > to_remove->index_ ))
 					{
@@ -366,7 +378,7 @@ class Graph
 				}
 			
 				adj_list_.erase(std::move(*to_remove));
-				--size_;
+				--vsize_;
 			}
 			return *this;
 			
@@ -374,12 +386,43 @@ class Graph
 		
 		int vsize()
 		{
-			return size_;
+			return vsize_;
 		}
 		
+		int esize()
+		{
+			return esize_;
+		}
+		
+		bool is_vertex_exist(const T& node)
+		{
+			return vertex_nodes_.find(Node(-1,node)) != vertex_nodes_.end();
+		}
+		
+		int num_neighbours(const T& node)
+		{
+			if(is_vertex_exist(node))
+				return adj_list_[Node(-1,node)].size();
+			else return -1;
+		}
+		
+		std::set<T> neighbours(const T& node)
+		{	
+			if(is_vertex_exist(node))
+			{
+				std::set<T> s;
+				std::set<Node> temp_set=adj_list_[Node(-1,node)];
+				for(auto begin = temp_set.begin();begin!=temp_set.end();++begin)
+					s.insert(begin->value_);
+				return s;
+			}
+			
+			return std::set<T>();
+			
+		}
+		
+		
 		//make sure that isolated nodes are also visited in some order;
-
-	
 };
 
 
@@ -497,10 +540,15 @@ int main()
 	new_g.display();
 	
 		std::cout << "no of vertices :" << move_new_g.vsize() << "\n";
+		std::cout << "no of edges :" << move_new_g.esize() << "\n";
 	move_new_g.display();
 	
-	
-	
+	move_new_g.remove_edge(f,c);
+	move_new_g.display();
+	std::cout << std::boolalpha << "F exists ?" <<move_new_g.is_vertex_exist(f)<<"\n";
+	for(auto c : move_new_g.neighbours('e'))
+		std::cout << c << "\n";
+	std::cout << std::boolalpha << "F number of neighbours ?" <<move_new_g.num_neighbours(f)<<"\n";
 	//myg.remove_edge(a,b);
 	//myg.remove_edge(std::pair<char,char>(b,c));
 	//myg.add_edge(d,b);
