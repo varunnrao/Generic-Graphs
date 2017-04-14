@@ -43,7 +43,7 @@ class Graph
 			adj_list_[Node()];			
 		}
 		
-		constexpr Graph(const std::set<T> vertices,const std::set<std::pair<T,T>> edges)
+		constexpr Graph(const std::set<T>& vertices,const std::set<std::pair<T,T>>& edges)
 		:vsize_(0),esize_(0)
 		{
 		
@@ -79,7 +79,7 @@ class Graph
 		#endif 
 		
 		template<typename U>
-		constexpr Graph(const std::initializer_list<U> vertex_list)
+		constexpr Graph(const std::initializer_list<U>& vertex_list)
 		:vsize_(0),esize_(0)
 		{
 			std::set<U> s(vertex_list);
@@ -340,7 +340,7 @@ class Graph
 			
 		}
 		
-		Graph& remove_vertex(T& v)
+		Graph& remove_vertex(const T& v)
 		{
 			auto to_remove = vertex_nodes_.find(Node(-1,v));
 			if(to_remove !=vertex_nodes_.end())
@@ -421,7 +421,7 @@ class Graph
 			
 		}
 		
-		bool is_edge(const std::pair<T,T> e)
+		bool is_edge(const std::pair<T,T>& e)
 		{
 			return is_edge(e.first,e.second);
 		}
@@ -737,35 +737,271 @@ int main()
 		std::cout << "is a-e an edge in the graph? :" <<myg.is_edge(std::pair<char,char>(a,e)) << std::endl;
 		std::cout << "is f-e an edge in the graph? :" <<myg.is_edge(std::pair<char,char>(f,e)) << std::endl;		
 	}
+{      //user defined type
 
-	#if 0
-	Rect a(3,5);
-	Rect b(4,5);
-	Rect c(1,2);
-	Rect d(7,3);
-	Rect e(9,10);
+		Rect a(1,2);
+		Rect b(2,1);	
+		Rect c(5,5);
+		Rect d(6,7);
+		Rect e(10,50);
+		Rect f(15,2);
+		{
+	
+			std::cout << "TEST ctor 1 edges and vertices set" <<std::endl;
+			std::set<Rect> vertices {a,b,c,d,e,f};
+			std::set<std::pair<Rect,Rect>> edges 
+			{
+				std::make_pair(a,b),
+				std::make_pair(a,e),
+				std::make_pair(b,e),
+				std::make_pair(c,e),
+				std::make_pair(d,e),
+				std::make_pair(f,c)
+	
+			};
+	
+			Graph<Rect> myg(vertices, edges);
+			std::cout << "TEST1 display" <<std::endl;
+			myg.display();
+			std::cout << "no of vertices :" << myg.vsize() << "\n";
+			std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		
+		
+		}
+	
+	
+	
 
-	std::set<Rect> vertices {a,b,c,d,e};
-	std::set<std::pair<Rect,Rect>> edges {
-		std::make_pair(a,b),
-		std::make_pair(a,e),
-		std::make_pair(b,e),
-		std::make_pair(c,e),
-		std::make_pair(d,e)
-	};
+		{
+			std::cout << "TEST ctor 2 default ctor" <<std::endl;
+			Graph<Rect> myg;
+			myg.add_vertex(a);
+			myg.add_vertex(b);
+			myg.add_vertex(c);
+			myg.add_vertex(d);
+			myg.add_vertex(e);
+			myg.add_vertex(f);
+			myg.add_edge(a,b);
+			myg.add_edge(a,e);
+			myg.add_edge(e,c);
+			myg.add_edge(e,d);
+			myg.add_edge(b,e);
+			myg.add_edge(c,f);
+			std::cout << "TEST2 display" <<std::endl;
+			myg.display();
+			std::cout << "no of vertices :" << myg.vsize() << "\n";
+			std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		}
+		{
+			std::cout << "TEST ctor 3 iterator ctor" <<std::endl;
+			std::vector<Rect> v{a,b,c,d,e,f};
+			Graph<Rect> myg(v.begin(),v.end());
+			myg.add_edge(a,b);
+			myg.add_edge(a,e);
+			myg.add_edge(e,c);
+			myg.add_edge(e,d);
+			myg.add_edge(b,e);
+			myg.add_edge(c,f);
+			std::cout << "TEST3 display" <<std::endl;
+			myg.display();
+			std::cout << "no of vertices :" << myg.vsize() << "\n";
+			std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		
+		}
+	
+		{
+			std::cout << "TEST ctor 4 iterator ctor" <<std::endl;
+			std::vector<Rect> v{a,b,c,d,e,f};
+			Graph<Rect> myg({a,b,c,d,e,f});
+			myg.add_edge(a,b);
+			myg.add_edge(a,e);
+			myg.add_edge(e,c);
+			myg.add_edge(e,d);
+			myg.add_edge(b,e);
+			myg.add_edge(c,f);
+			std::cout << "TEST4 display" <<std::endl;
+			myg.display();
+			std::cout << "no of vertices :" << myg.vsize() << "\n";
+			std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		}
+	
+	
+	
+		{
+			std::cout << "TEST ctor 5 copy ctor" <<std::endl;
+			Graph<Rect> myg({a,b,c,d,e,f});
+			myg.add_edge(a,b);
+			myg.add_edge(a,e);
+			myg.add_edge(e,c);
+			myg.add_edge(e,d);
+			myg.add_edge(b,e);
+			myg.add_edge(c,f);
+			Graph<Rect> new_g(myg);
+			std::cout << "TEST5 display" <<std::endl;
+			new_g.display();
+			std::cout << "no of vertices :" << new_g.vsize() << "\n";
+			std::cout << "no of edges :" << new_g.esize() << "\n\n\n";
+		
+		}
+	
+		{
+			std::cout << "TEST ctor 6 move ctor" <<std::endl;
+			Graph<Rect> myg({a,b,c,d,e,f});
+			myg.add_edge(a,b);
+			myg.add_edge(a,e);
+			myg.add_edge(e,c);
+			myg.add_edge(e,d);
+			myg.add_edge(b,e);
+			myg.add_edge(c,f);
+			Graph<Rect> new_g(std::move(myg));
+			std::cout << "TEST6 display" <<std::endl;
+			new_g.display();
+			std::cout << "no of vertices :" << new_g.vsize() << "\n";
+			std::cout << "no of edges :" << new_g.esize() << "\n";
+			std::cout << "TEST6 display 2" <<std::endl;
+			myg.display();
+			std::cout << "no of vertices :" << myg.vsize() << "\n";
+			std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		
+		}
+	
+	
+		{
+			std::cout << "TEST ctor 7 copy assignment" <<std::endl;
+			Graph<Rect> myg({a,b,c,d,e,f});
+			myg.add_edge(a,b);
+			myg.add_edge(a,e);
+			myg.add_edge(e,c);
+			myg.add_edge(e,d);
+			myg.add_edge(b,e);
+			myg.add_edge(c,f);
+			Graph<Rect> new_g;
+			new_g=myg;
+			std::cout << "TEST7 display" <<std::endl;
+			new_g.display();
+			std::cout << "no of vertices :" << new_g.vsize() << "\n";
+			std::cout << "no of edges :" << new_g.esize() << "\n\n\n";
+
+		
+		}
 
 	
-	#endif
+		{
+			std::cout << "TEST ctor 8 move assignment" <<std::endl;
+			Graph<Rect> myg({a,b,c,d,e,f});
+			myg.add_edge(a,b);
+			myg.add_edge(a,e);
+			myg.add_edge(e,c);
+			myg.add_edge(e,d);
+			myg.add_edge(b,e);
+			myg.add_edge(c,f);
+			Graph<Rect> new_g;
+			new_g=std::move(myg);
+			std::cout << "TEST 8 display" <<std::endl;
+			new_g.display();
+			std::cout << "no of vertices :" << new_g.vsize() << "\n";
+			std::cout << "no of edges :" << new_g.esize() << "\n";
+			std::cout << "TEST 8 display 2" <<std::endl;
+			myg.display();
+			std::cout << "no of vertices :" << myg.vsize() << "\n";
+			std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		
+		}
+		
+		
+		std::cout << "TEST for functions" << std::endl;
+		Graph<Rect> myg({a,b,c,d,e,f});
+		myg.add_edge(a,b);
+		myg.add_edge(a,e);
+		myg.add_edge(e,c);
+		myg.add_edge(e,d);
+		myg.add_edge(std::make_pair(b,e));
+		myg.add_edge(std::make_pair(c,f));
+		std::cout << "Display 1" <<std::endl;
+		myg.display();
+		std::cout << "no of vertices :" << myg.vsize() << "\n";
+		std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		
+		
+		std::cout <<"removing edge b-e" <<std::endl;
+		myg.remove_edge(b,e);
+		std::cout << "Display 2" <<std::endl;
+		myg.display();
+		std::cout << "no of vertices :" << myg.vsize() << "\n";
+		std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		
+		std::cout <<"removing vertex e" <<std::endl;
+		myg.remove_vertex(e);
+		std::cout << "Display 3" <<std::endl;
+		myg.display();
+		std::cout << "no of vertices :" << myg.vsize() << "\n";
+		std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		
+		std::cout << "adding vertex e" <<std::endl;
+		myg.add_vertex(e);
+		std::cout << "Display 4" <<std::endl;
+		myg.display();
+		std::cout << "no of vertices :" << myg.vsize() << "\n";
+		std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		
+		std::cout << "adding edges to e" <<std::endl;
+		myg.add_edge(a,e);
+		myg.add_edge(e,c);
+		myg.add_edge(e,d);
+		myg.add_edge(b,e);
+		std::cout << "Display 5" <<std::endl;
+		myg.display();
+		std::cout << "no of vertices :" << myg.vsize() << "\n";
+		std::cout << "no of edges :" << myg.esize() << "\n\n\n";
+		
+		{
+			std::cout << "DFS traversal using pre-increment"<<std::endl;
+			auto it = myg.begin();
+			while(it != myg.end())
+			{
+				std::cout << *it << "\t";
+				++it;
+			}
+		}
+		std::cout << std::endl;
+		{
+			std::cout << "DFS traversal using post-increment"<<std::endl;
+			auto it = myg.begin();
+			while(it != myg.end())
+			{
+				std::cout << *it << "\t";
+				it++;
+			}
+		}
+		std::cout << std::endl;
+		
+		
+		std::cout << std::boolalpha << "m is a vertex in the graph? "<<myg.is_vertex(Rect(4,5))<<std::endl;
+		std::cout << std::boolalpha << "e is a vertex in the graph? "<<myg.is_vertex(e)<<std::endl;
+		std::cout << "Number of adjacent vertices to e :" <<myg.num_neighbours(e) << std::endl;
+		std::cout << "Adjacent vertices to e :" ;
+		for(auto v : myg.neighbours(e))
+		{
+			std::cout << v <<"\t";
+		} 
+		std::cout << std::endl;
+		
+		std::cout << "is a-e an edge in the graph? :" <<myg.is_edge(a,e) << std::endl;
+		std::cout << "is f-e an edge in the graph? :" <<myg.is_edge(f,e) << std::endl;
+		std::cout << "is a-e an edge in the graph? :" <<myg.is_edge(std::pair<Rect,Rect>(a,e)) << std::endl;
+		std::cout << "is f-e an edge in the graph? :" <<myg.is_edge(std::pair<Rect,Rect>(f,e)) << std::endl;		
+	}
 }
 
 /*
-		a------b
-		 \    /
-		  \  /
- 		   e
-		  / \ 
-		 c   d
-		/
-	       / 
-	      f
+		a (1,2)------b (2,1)                  
+		   \        /
+		    \      / 
+		     \    /
+ 		     e (10,50)
+		    /      \ 
+		   c(5,5)   d(6,7)
+		  /
+	         / 
+	        f(15,2)
 */
